@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>dualarm_exhibition</name>
+  <version>0.0.0</version>
+  <description>The dualarm_exhibition package</description>
+  <maintainer email="andreas.voelz@uni-ulm.de">Andreas Völz</maintainer>
+  <author email="andreas.voelz@uni-ulm.de">Andreas Völz</author>
+  <license>Proprietary</license>
+
+  <buildtool_depend>catkin</buildtool_depend>  
+  <build_depend>roscpp</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>prbt_support</run_depend>
+
+  <export>
+  </export>
+</package>

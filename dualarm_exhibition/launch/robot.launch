@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- gripper e.g. pg70. See documentation of meta-package prbt_grippers -->
+  <arg name="gripper" default="pg70" />
+
+  <!-- load description to the parameter server. If you wrote your own xacro model, you can load it yourself
+       and set load_robot_description to false -->
+  <arg name="load_robot_description" default="true" />
+
+  <!-- safe-torque-off-input from the safety controller is read to do a stop1 -->
+  <!-- The signal is read via modbus and you can configure the modbus server ip -->
+  <arg name="sto" default="pnoz"/>
+  <arg name="api_spec_file" default="$(find prbt_hardware_support)/config/modbus_api_spec_$(arg sto).yaml" />
+  <arg name="sto_modbus_server_ip" default="$(eval '192.168.0.10' if sto=='pss4000' else '169.254.60.1')" />
+
+  <!-- Set braketest usage -->
+  <arg name="has_braketest_support" default="false"/>
+
+  <!-- Set operation mode support -->
+  <arg name="has_operation_mode_support" default="false"/>
+
+  <!-- set the name of the config file for canopen_motor_node. If you want to change settings, copy the yaml
+       file into your package and set canopen_config to your new config file path -->
+  <arg name="canopen_config" default="$(find dualarm_exhibition)/config/left_arm_driver.yaml" />
+
+  <!-- manipulator_controller.yaml defines different types of controllers and you can select which ones
+       are automatically started.
+       By default, spawn joint_state and joint_trajectory controllers;
+       gripper controller is added to the defaults list, if gripper arg is set -->
+  <arg name="spawn_controllers"
+       default="$(eval 'left_arm_joint_trajectory_controller left_arm_joint_state_controller' +
+                      (' left_gripper_joint_trajectory_controller' if arg('gripper') else ''))" />
+
+  <!-- send urdf to param server -->
+  <param name="robot_description" if="$(arg load_robot_description)"
+    command="$(find xacro)/xacro '$(find dualarm_exhibition)/urdf/dualarm_prbt.urdf.xacro'" />
+
+  <!-- robot state publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+
+  <!-- relay to /joint_states -->
+  <node ns="left_arm" name="joint_state_relay" pkg="topic_tools" type="relay" args="/left_arm/joint_states /joint_states"/>
+
+  <!-- start the driver -->
+  <node ns="left_arm" name="driver" pkg="canopen_motor_node" type="canopen_motor_node" output="screen" clear_params="true">
+    <rosparam command="load" file="$(arg canopen_config)" />
+
+    <!-- allow can grippers to interfere with the canopen_motor_node parameters -->
+    <rosparam unless="$(eval not arg('gripper'))" command="load"
+              file="$(eval find('dualarm_exhibition') + '/config/left_gripper_driver_canopen_motor_node.yaml')" />
+  </node>
+
+  <!-- load controller configuration -->
+  <rosparam ns="left_arm" command="load" file="$(find dualarm_exhibition)/config/left_arm_controller.yaml" />
+  <rosparam unless="$(eval not arg('gripper'))" ns="left_arm" command="load"
+            file="$(eval find('dualarm_exhibition') + '/config/left_gripper_controller.yaml')" />
+
+  <!-- spawn controllers -->
+  <node ns="left_arm" name="controller_spawner" pkg="controller_manager" type="spawner"
+        args="$(arg spawn_controllers)" />
+
+  <!-- Initialize controllers and start STO-processing (if configured) -->
+  <group unless="$(eval sto == 'none')" >
+    <!-- Load api spec for all nodes -->
+    <rosparam ns="/prbt/api_spec" command="load" file="$(arg api_spec_file)" />
+
+    <node pkg="rosservice" type="rosservice" name="robot_init" args="call --wait /left_arm/driver/init"/>
+    <include file="$(find prbt_hardware_support)/launch/modbus_client.launch">
+      <arg name="modbus_server_ip" value="$(arg sto_modbus_server_ip)" />
+    </include>
+    <include file="$(find prbt_hardware_support)/launch/modbus_adapter_sto_node.launch" />
+    <include if="$(arg has_braketest_support)" file="$(find prbt_hardware_support)/launch/brake_test.launch" />
+
+    <include if="$(arg has_operation_mode_support)" file="$(find prbt_hardware_support)/launch/operation_mode_adapter.launch" />
+  </group>
+
+  <group if="$(eval sto == 'none')" >
+    <node pkg="rosservice" type="rosservice" name="robot_init" args="call --wait /left_arm/driver/init"/>
+  </group>
+
+  <node ns="left_arm" pkg="prbt_hardware_support" name="system_info_node"
+        type="system_info_node" output="screen" />
+
+</launch>

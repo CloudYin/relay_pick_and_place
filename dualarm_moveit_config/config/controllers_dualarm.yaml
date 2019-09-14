@@ -1,0 +1,20 @@
+controller_list:
+  - name: "dualarm/left_arm_joint_trajectory_controller/"
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    joints: [left_arm_joint_1, left_arm_joint_2, left_arm_joint_3, left_arm_joint_4, left_arm_joint_5, left_arm_joint_6]
+  
+  - name: "dualarm/right_arm_joint_trajectory_controller/"
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    joints: [right_arm_joint_1, right_arm_joint_2, right_arm_joint_3, right_arm_joint_4, right_arm_joint_5, right_arm_joint_6]
+
+  - name: "dualarm/left_gripper_joint_trajectory_controller/"
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    joints: [left_gripper_finger_left_joint]
+
+  - name: "dualarm/right_gripper_joint_trajectory_controller/"
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    joints: [right_gripper_finger_left_joint]

@@ -96,8 +96,8 @@
 
   <joint name="table_joint" type="fixed">
 	<!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
-          <parent link="table" />
-          <child link="stander" />
+    <parent link="table" />
+    <child link="stander" />
   </joint>
 
 
@@ -112,29 +112,29 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0.2" rpy="0 0 0" />
+      <origin xyz="0 0.133 0.2" rpy="0 0 0" />
       <geometry>
         <cylinder radius="0.15" length="0.4" />
       </geometry>
     </collision>
     <collision>
-      <origin xyz="0 0 0.41" rpy="0 0 0" />
+      <origin xyz="0 0.133 0.41" rpy="0 0 0" />
       <geometry>
         <sphere radius="0.21"/>
       </geometry>
     </collision>
-    <collision>
+    <!-- <collision>
       <origin xyz="0.05 0.13 0.43" rpy="0 0 0" />
       <geometry>
         <sphere radius="0.1"/>
       </geometry>
-    </collision>
-    <collision>
+    </collision> -->
+    <!-- <collision>
       <origin xyz="0.05 -0.13 0.43" rpy="0 0 0" />
       <geometry>
         <sphere radius="0.1"/>
       </geometry>
-    </collision>
+    </collision> -->
   </link>
 
 
